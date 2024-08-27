@@ -7,25 +7,31 @@ const multer = require("multer");
 const path = require("path");
 const cors = require("cors");
 
+// Configuração do CORS
+app.use(cors({
+  origin: 'https://imaginative-kashata-26f8fe.netlify.app', // Substitua com seu domínio frontend
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(express.json());
-app.use(cors());
 
-//Coneção Banco de Dados com MongoDB
+// Conexão com o Banco de Dados MongoDB
+mongoose.connect("mongodb+srv://Guilherme:123@cluster0.heruc.mongodb.net/e-commerce", {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+}).then(() => {
+  console.log("MongoDB Connected");
+}).catch(err => {
+  console.error("MongoDB Connection Error:", err);
+});
 
-mongoose.connect(
-  "mongodb+srv://Guilherme:123@cluster0.heruc.mongodb.net/e-commerce"
-);
-
-//Criação API
-
-<div>Hello World</div>
-
+// Endpoint de Teste
 app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
 
-//Image Storage Engine
-
+// Configuração do Storage para Imagens
 const storage = multer.diskStorage({
   destination: "./upload/images",
   filename: (req, file, cb) => {
@@ -38,18 +44,18 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-//Creating Upload Endpoint for images
+// Endpoint para Upload de Imagens
 app.use("/images", express.static("upload/images"));
 
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
-    sucess: 1,
+    success: 1,
     image_url: `http://localhost:${port}/images/${req.file.filename}`,
   });
 });
 
-// Schema for creaing products
-const Product = mongoose.model("Product", {
+// Schema para Produtos
+const Product = mongoose.model("Product", new mongoose.Schema({
   id: {
     type: Number,
     required: true,
@@ -78,12 +84,13 @@ const Product = mongoose.model("Product", {
     type: Date,
     default: Date.now,
   },
-  avilable: {
+  available: {
     type: Boolean,
     default: true,
   },
-});
+}));
 
+// Endpoint para Adicionar Produto
 app.post("/addproduct", async (req, res) => {
   let products = await Product.find({});
   let id;
@@ -104,35 +111,32 @@ app.post("/addproduct", async (req, res) => {
   });
   console.log(product);
   await product.save();
-  console.log("Save");
+  console.log("Product Saved");
   res.json({
-    sucess: true,
+    success: true,
     name: req.body.name,
   });
 });
 
-//Creating api for deleting products
-
+// Endpoint para Remover Produto
 app.post("/removeproduct", async (req, res) => {
   await Product.findOneAndDelete({ id: req.body.id });
-  console.log("Removed");
+  console.log("Product Removed");
   res.json({
-    sucess: true,
+    success: true,
     name: req.body.name,
   });
 });
 
-//Creating API for getting all procuts
-
+// Endpoint para Obter Todos os Produtos
 app.get("/allproducts", async (req, res) => {
   let products = await Product.find({});
-  console.log("all products fetched");
+  console.log("All Products Fetched");
   res.send(products);
 });
 
-//Schema creating for user model
-
-const Users = mongoose.model("Users", {
+// Schema para Usuários
+const Users = mongoose.model("Users", new mongoose.Schema({
   name: {
     type: String,
   },
@@ -150,18 +154,16 @@ const Users = mongoose.model("Users", {
     type: Date,
     default: Date.now,
   },
-});
+}));
 
-// Creating endpoint for register the user
+// Endpoint para Registro de Usuário
 app.post("/signup", async (req, res) => {
   let check = await Users.findOne({ email: req.body.email });
   if (check) {
-    return res
-      .status(400)
-      .json({
-        sucess: false,
-        errors: "existing user found with same email address",
-      });
+    return res.status(400).json({
+      success: false,
+      errors: "Existing user found with same email address",
+    });
   }
 
   let cart = {};
@@ -185,13 +187,12 @@ app.post("/signup", async (req, res) => {
 
   const token = jwt.sign(data, "secret_ecom");
   res.json({
-    sucess: true,
+    success: true,
     token,
   });
 });
 
-//creating endpoint for user login
-
+// Endpoint para Login de Usuário
 app.post("/login", async (req, res) => {
   let user = await Users.findOne({
     email: req.body.email,
@@ -204,77 +205,71 @@ app.post("/login", async (req, res) => {
           id: user.id,
         },
       };
-      const token = jwt.sign(data, "secret-ecom");
+      const token = jwt.sign(data, "secret_ecom");
       res.json({
-        sucess: true,
+        success: true,
         token,
       });
     } else {
       res.json({
-        sucess: false,
+        success: false,
         errors: "Wrong password",
       });
     }
   } else {
     res.json({
-      sucess: false,
+      success: false,
       errors: "Wrong email id",
     });
   }
 });
 
-//creating endpoint for new collection data
-
+// Endpoint para Obter Novas Coleções
 app.get("/newcollections", async (req, res) => {
   let products = await Product.find({});
   let newcollection = products.slice(1).slice(-8);
-  console.log("News collections deu certo");
+  console.log("New Collections Fetched");
   res.send(newcollection);
 });
 
-//creating endpoint for popular in women section
-
+// Endpoint para Produtos Populares em Mulheres
 app.get("/popularinwomen", async (req, res) => {
-  let procuts = await Product.find({ category: "women" });
-  let popular_in_women = procuts.slice(0, 4);
-  console.log("Popular Women deu certo");
+  let products = await Product.find({ category: "women" });
+  let popular_in_women = products.slice(0, 4);
+  console.log("Popular Women Products Fetched");
   res.send(popular_in_women);
 });
 
-//creating middelware to fethc user
+// Middleware para Buscar Usuário
 const fetchUser = async (req, res, next) => {
   const token = req.header("auth-token");
   if (!token) {
-    return res
-      .status(401)
-      .send({ errors: "Please authenticate using a valid token" });
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
   try {
-    const data = jwt.verify(token, "secret-ecom");
+    const data = jwt.verify(token, "secret_ecom");
     req.user = data.user;
     next();
   } catch (error) {
-    return res
-      .status(401)
-      .send({ errors: "Por favor authenticate using a valid token" });
+    return res.status(401).send({ errors: "Please authenticate using a valid token" });
   }
 };
 
-// Criando endpoint para adicionar produtos no carrinho
+// Endpoint para Adicionar Produto ao Carrinho
 app.post("/addtocart", fetchUser, async (req, res) => {
-  console.log("adicionou", req.body.itemId);
+  console.log("Add to Cart:", req.body.itemId);
   let userData = await Users.findOne({ _id: req.user.id });
   userData.cartData[req.body.itemId] += 1;
   await Users.findOneAndUpdate(
     { _id: req.user.id },
     { cartData: userData.cartData }
   );
-  res.status(200).send({ message: "Produto adicionado ao carrinho" });
+  res.status(200).send({ message: "Product added to cart" });
 });
 
-//creating endpoint to remove product from cart data
+// Endpoint para Remover Produto do Carrinho
 app.post("/removefromcart", fetchUser, async (req, res) => {
-  console.log("removeu", req.body.itemId);
+  console.log("Remove from Cart:", req.body.itemId);
   let userData = await Users.findOne({ _id: req.user.id });
   if (userData.cartData[req.body.itemId] > 0)
     userData.cartData[req.body.itemId] -= 1;
@@ -282,17 +277,17 @@ app.post("/removefromcart", fetchUser, async (req, res) => {
     { _id: req.user.id },
     { cartData: userData.cartData }
   );
-  res.status(200).send({ message: "Produto removido do carrinho" });
+  res.status(200).send({ message: "Product removed from cart" });
 });
 
-//creating endpoint for get cartdata
-
+// Endpoint para Obter Dados do Carrinho
 app.post("/getcart", fetchUser, async (req, res) => {
-  console.log("GetCart");
+  console.log("Get Cart Data");
   let userData = await Users.findOne({ _id: req.user.id });
   res.json(userData.cartData);
 });
 
+// Inicializa o Servidor
 app.listen(port, (error) => {
   if (!error) {
     console.log("Server Running on Port " + port);
