@@ -18,6 +18,8 @@ mongoose.connect(
 
 //Criação API
 
+<div>Hello World</div>
+
 app.get("/", (req, res) => {
   res.send("Express App is Running");
 });
