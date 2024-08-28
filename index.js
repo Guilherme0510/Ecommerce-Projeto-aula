@@ -9,7 +9,7 @@ const cors = require("cors");
 
 // Configuração do CORS
 app.use(cors({
-  origin: 'https://imaginative-kashata-26f8fe.netlify.app',
+  origin: 'https://interface-ecommerce-jx5tsja3i.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -48,7 +48,7 @@ app.use("/images", express.static("upload/images"));
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
     success: 1,
-    image_url: `https://ecommerce-projeto-aulaa.vercel.app/images/${req.file.filename}`,
+    image_url: `https://interface-ecommerce-jx5tsja3i.vercel.app/images/${req.file.filename}`,
   });
 });
 // Schema para Produtos
