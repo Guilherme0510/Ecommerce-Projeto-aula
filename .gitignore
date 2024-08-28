@@ -10,3 +10,4 @@ node_modules/
 # Diretórios de build
 build/
 dist/
+.vercel

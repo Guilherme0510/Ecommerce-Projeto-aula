@@ -9,7 +9,7 @@ const cors = require("cors");
 
 // Configuração do CORS
 app.use(cors({
-  origin: 'https://imaginative-kashata-26f8fe.netlify.app', // Substitua com seu domínio frontend
+  origin: 'https://imaginative-kashata-26f8fe.netlify.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -17,15 +17,13 @@ app.use(cors({
 app.use(express.json());
 
 // Conexão com o Banco de Dados MongoDB
-mongoose.connect("mongodb+srv://Guilherme:123@cluster0.heruc.mongodb.net/e-commerce", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true
-}).then(() => {
-  console.log("MongoDB Connected");
-}).catch(err => {
-  console.error("MongoDB Connection Error:", err);
-});
-
+mongoose.connect("mongodb+srv://Guilherme:123@cluster0.heruc.mongodb.net/e-commerce")
+  .then(() => {
+    console.log("MongoDB Connected");
+  })
+  .catch(err => {
+    console.error("MongoDB Connection Error:", err);
+  });
 // Endpoint de Teste
 app.get("/", (req, res) => {
   res.send("Express App is Running");
