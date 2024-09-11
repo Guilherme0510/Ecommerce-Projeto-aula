@@ -33,24 +33,24 @@ app.get("/", (req, res) => {
 const storage = multer.diskStorage({
   destination: "./upload/images",
   filename: (req, file, cb) => {
-    return cb(
+    cb(
       null,
       `${file.fieldname}_${Date.now()}${path.extname(file.originalname)}`
     );
   },
 });
-
 const upload = multer({ storage: storage });
 
 // Endpoint para Upload de Imagens
-app.use("/images", express.static("upload/images"));
+app.use("/images", express.static(path.join(__dirname, "upload/images")));
 
 app.post("/upload", upload.single("product"), (req, res) => {
   res.json({
     success: 1,
-    image_url: `https://interface-ecommerce-8afq.vercel.app/images/${req.file.filename}`,
+    image_url: `/images/${req.file.filename}`,
   });
 });
+
 // Schema para Produtos
 const Product = mongoose.model("Product", new mongoose.Schema({
   id: {
